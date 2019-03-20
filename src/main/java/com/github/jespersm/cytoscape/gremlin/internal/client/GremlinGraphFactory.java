@@ -1,11 +1,7 @@
 package com.github.jespersm.cytoscape.gremlin.internal.client;
 
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import org.apache.tinkerpop.gremlin.driver.Result;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -17,19 +13,35 @@ import com.github.jespersm.cytoscape.gremlin.internal.graph.GraphNode;
 import com.github.jespersm.cytoscape.gremlin.internal.graph.GraphObject;
 import com.github.jespersm.cytoscape.gremlin.internal.graph.GraphObjectList;
 import com.github.jespersm.cytoscape.gremlin.internal.graph.GraphSimple;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 
 class GremlinGraphFactory {
 
     GraphObject create(Result result) {
-    	Object value = result.getObject(); 
+        Object value = result.getObject();
         if (value instanceof Vertex) {
             return create(result.getVertex());
         } else if (value instanceof Edge) {
             return create(result.getEdge());
         } else if (value instanceof List) {
-            return create((List<Object>)value);
+            return create((List<Object>) value);
         } else if (value instanceof Map) {
-            return create(((Map)value).values());
+            return create(((Map) value).values());
+        } else if (value instanceof TinkerGraph) {
+            TinkerGraph graph = (TinkerGraph) value;
+            Iterator<Vertex> vertices = graph.vertices();
+            GraphObjectList list = new GraphObjectList();
+
+            while (vertices.hasNext()) {
+                Vertex v = vertices.next();
+                list.add(create(v));
+            }
+            Iterator<Edge> edges = graph.edges();
+            while (edges.hasNext()) {
+                Edge v = edges.next();
+                list.add(create(v));
+            }
+            return list;
         } else {
             return new GraphSimple(value);
         }
@@ -62,14 +74,14 @@ class GremlinGraphFactory {
     }
 
     private Map<String, Object> toMap(Element element) {
-    	LinkedHashMap<String, Object> map = new LinkedHashMap<>();
-    	for (String key: element.keys()) {
-    		map.put(key, element.value(key));
-    	}
-		return map;
-	}
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        for (String key : element.keys()) {
+            map.put(key, element.value(key));
+        }
+        return map;
+    }
 
-	private GraphNode create(Vertex node) {
+    private GraphNode create(Vertex node) {
         GraphNode graphNode = new GraphNode(node.id().toString());
         graphNode.setProperties(toMap(node));
         graphNode.setLabel(node.label());

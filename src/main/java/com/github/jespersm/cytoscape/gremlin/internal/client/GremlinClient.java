@@ -55,6 +55,7 @@ public class GremlinClient {
             builder = builder.authProperties(new AuthProperties().with(PASSWORD, connectionParameter.getPasswordAsString()));
         }
 
+        builder.maxContentLength(67108864);
         HashMap<String, Object> configMap = new HashMap<>();
         configMap.put(org.apache.tinkerpop.gremlin.driver.ser.AbstractGryoMessageSerializerV3d0.TOKEN_SERIALIZE_RESULT_TO_STRING, "false");
         List<String> ioRegisters = new ArrayList<>(2);
